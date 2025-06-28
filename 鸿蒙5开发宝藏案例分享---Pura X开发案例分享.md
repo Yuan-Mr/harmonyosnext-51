@@ -1,31 +1,41 @@
-🌟 鸿蒙宝藏案例分享：Pura X 外屏开发实战解析
-大家好！我是你们的鸿蒙开发小伙伴。今天在翻阅官方文档时，意外发现了华为藏着的"宝藏级"案例——Pura X 折叠屏外屏开发实践！这些实战方案简直太实用了，但竟然很少人讨论。赶紧整理成干货分享给大家，全程高能，记得收藏哦~
+### 🌟 HarmonyOS Treasure Case Sharing: Pura X Outer Screen Development Battle Analysis  
 
-🧩 一、为什么需要专门适配外屏？
-Pura X 采用上下折叠设计，外屏是 1:1 方形屏（内屏16:10）。这意味着：
-● 外屏高度只有内屏的 1/2（约 24vp vs 48vp）
-● 操作方式需单手友好（查看通知/支付/导航等高频操作）
-● 需特殊处理布局挤压/内容截断问题
-官方通过 5 大核心场景给出解决方案，下面我们逐条拆解👇
+Hello everyone! I'm your HarmonyOS development partner. Today, while flipping through official documentation, I accidentally discovered Huawei's hidden "treasure-level" case—the Pura X foldable outer screen development practice! These practical solutions are incredibly useful, yet surprisingly little discussed. I quickly organized them into essential tips to share with you. It's full of insights—remember to save it!  
 
-🚀 二、五大场景开发实战（附代码解析）
-1️⃣ 小窗口响应式布局
-痛点：同一组件在内/外屏需要不同尺寸
-方案：通过双断点判断动态调整样式
+
+### 🧩 I. Why Special Adaptation for the Outer Screen Is Needed?  
+Pura X adopts a top-bottom folding design, with the outer screen being a 1:1 square screen (inner screen 16:10). This means:  
+● The outer screen height is only 1/2 of the inner screen (approximately 24vp vs 48vp)  
+● Operation methods must be single-hand friendly (高频 operations like checking notifications, payments, navigation)  
+● Special handling of layout compression/content truncation issues  
+
+The official team provides solutions for 5 core scenarios, which we'll拆解 step by step below 👇  
+
+
+### 🚀 II. Development Practice for Five Scenarios (with Code Analysis)  
+#### 1️⃣ Small-Window Responsive Layout  
+**Pain point**: The same component requires different sizes on inner/outer screens.  
+**Solution**: Dynamically adjust styles via dual breakpoint judgment.  
+
+```typescript
 Image($r('app.media.icon'))
 .height(
-  // 关键判断：横屏断点sm + 竖屏断点md
+  // Key judgment: landscape breakpoint sm + portrait breakpoint md
   this.currentWidthBreakpoint === 'sm' && 
   this.currentHeightBreakpoint === 'md' 
-    ? 24 // 外屏高度
-    : 48 // 内屏高度
+    ? 24 // Outer screen height
+    : 48 // Inner screen height
 )
-.aspectRatio(1) // 保持正方形
-2️⃣ 内容显隐控制
-痛点：外屏需隐藏非核心元素（如Banner广告）
-方案A：使用 visibility 控制显示
+.aspectRatio(1) // Maintain square shape
+```  
+
+#### 2️⃣ Content Visibility Control  
+**Pain point**: The outer screen needs to hide non-core elements (e.g., Banner ads).  
+**Solution A**: Control display with `visibility`.  
+
+```typescript
 Column() {
-  Text("外屏专属内容").fontSize(12)
+  Text("Outer screen exclusive content").fontSize(12)
 }
 .visibility(
   this.currentWidthBreakpoint === 'sm' && 
@@ -33,66 +43,88 @@ Column() {
     ? Visibility.Visible 
     : Visibility.None
 )
-方案B：条件渲染（适合复杂组件）
-if (this.isSmallScreen) { // 自定义判断函数
+```  
+
+**Solution B**: Conditional rendering (suitable for complex components).  
+
+```typescript
+if (this.isSmallScreen) { // Custom judgment function
   Column() {
-    Button("外屏快捷支付")
+    Button("Outer screen quick payment")
   }
 }
-3️⃣ 滑动容器优化
-痛点：外屏高度不足导致内容被截断
-神操作：用 Scroll 组件 + 自动失效机制
-Scroll() {
-  Column() { /* 主要内容 */ }
-}
-.scrollBar(BarState.Off) // 隐藏滚动条
-.height('100%')
-亮点：当内容高度<容器高度时，Scroll 自动禁用滑动，无需手动判断！
-4️⃣ 短视频沉浸式适配
-效果：视频全屏沉浸 + 控件半透明悬浮
-Stack() {
-  // 1. 底层视频（全屏）
-  Image($r('app.media.video_bg'))
-    .objectFit(ImageFit.Cover) // 关键：保持比例填充
+```  
 
-  // 2. 顶部标题栏（避让刘海）
+#### 3️⃣ Sliding Container Optimization  
+**Pain point**: Insufficient outer screen height causes content truncation.  
+**God operation**: Use `Scroll` component + automatic invalidation mechanism.  
+
+```typescript
+Scroll() {
+  Column() { /* Main content */ }
+}
+.scrollBar(BarState.Off) // Hide scrollbar
+.height('100%')
+```  
+**Highlight**: When content height < container height, `Scroll` automatically disables sliding without manual judgment!  
+
+#### 4️⃣ Immersive Adaptation for Short Videos  
+**Effect**: Full-screen immersive video + semi-transparent floating controls.  
+
+```typescript
+Stack() {
+  // 1. Bottom-layer video (full screen)
+  Image($r('app.media.video_bg'))
+    .objectFit(ImageFit.Cover) // Key: Maintain proportion filling
+
+  // 2. Top title bar (avoid notch)
   Row() { ... }
     .padding({ top: $r('app.float.topAvoidHeight') }) 
 
-  // 3. 侧边悬浮控件（带弹性留白）
+  // 3. Side floating controls (with elastic blank space)
   Scroll() {
     Column() {
-      Blank().layoutWeight(3) // 上方弹性占位
-      Button("点赞") 
-      Blank().layoutWeight(1) // 下方弹性占位
+      Blank().layoutWeight(3) // Upper elastic placeholder
+      Button("Like") 
+      Blank().layoutWeight(1) // Lower elastic placeholder
     }
   }
 }
-5️⃣ 滑动隐藏控件（超实用！）
-交互效果：
-● 上滑 → 隐藏标题栏/底栏
-● 下滑 → 渐显复原
-核心代码：
-// 监听滚动偏移量
+```  
+
+#### 5️⃣ Sliding Hidden Controls (Ultra-Practical!)  
+**Interaction effect**:  
+● Swipe up → Hide title bar/bottom bar  
+● Swipe down → Gradually restore display  
+**Core code**:  
+
+```typescript
+// Listen to scroll offset
 .onScrollFrameBegin((offset: number) => {
-  if (offset > 0) { // 上滑
-    this.topBarHeight *= 0.95 // 高度渐变缩小
-    this.barOpacity -= 0.05  // 透明度渐变
-  } else { // 下滑
+  if (offset > 0) { // Swipe up
+    this.topBarHeight *= 0.95 // Gradually reduce height
+    this.barOpacity -= 0.05  // Gradually reduce opacity
+  } else { // Swipe down
     animateTo({ duration: 300 }, () => {
-      this.topBarHeight = 78 + avoidHeight // 恢复高度
-      this.barOpacity = 1                  // 恢复透明度
+      this.topBarHeight = 78 + avoidHeight // Restore height
+      this.barOpacity = 1                  // Restore opacity
     })
   }
 })
+```  
 
-💡 三、避坑指南
-1. 系统规避区处理
-一定要用 getWindowAvoidArea() 获取刘海/下巴高度：
+
+### 💡 III. Pitfall Prevention Guide  
+#### 1. System Avoidance Area Handling  
+Must use `getWindowAvoidArea()` to obtain notch/chin height:  
+```typescript
 const topAvoid = window.getWindowAvoidArea(AvoidAreaType.TYPE_SYSTEM)
 AppStorage.setOrCreate('topAvoidHeight', topAvoid.topRect.height)
-2. 折叠状态监听
-// 监听折叠状态变化
+```  
+
+#### 2. Fold Status Listening  
+```typescript
+// Listen to fold status changes
 foldStatus: FoldStatus = FoldStatus.FOLD_STATUS_EXPANDED
 
 aboutToAppear() {
@@ -100,15 +132,22 @@ aboutToAppear() {
     this.foldStatus = status
   })
 }
-3. 转场动画优化
-内屏→外屏时，用页面接续保证流畅性：
-// 在pageTransition中定义共享元素
+```  
+
+#### 3. Transition Animation Optimization  
+Ensure smoothness from inner to outer screen with page continuation:  
+```typescript
+// Define shared elements in pageTransition
 PageTransition() {
   PageTransitionEnter({ duration: 250 })
     .sharedTransition('sharedButton')
 }
+```  
 
-🔚 四、结语
-这次挖出的 Pura X 外屏适配方案，简直是折叠屏开发的"黄金手册"！特别是滑动隐藏控件和双断点响应式的设计，能直接用到其他鸿蒙设备开发中。
-最后送大家一句话：折叠屏生态正在爆发，现在吃透这些技术，你就是明年涨薪最靓的仔！ 💪
-（原创整理不易，如果觉得有用，点个赞让我知道吧~ 下期分享"鸿蒙分布式相机开发"实战！）
+
+### 🔚 IV. Conclusion  
+The Pura X outer screen adaptation solution unearthed this time is简直 a "golden manual" for foldable development! Especially the designs for sliding hidden controls and dual-breakpoint responsiveness can be directly applied to other HarmonyOS device development.  
+
+Finally, a word for you: The foldable ecosystem is booming. Mastering these technologies now will make you the brightest candidate for a salary increase next year! 💪  
+
+(Original collation is not easy—if you find it useful, please like to let me know! The next issue will share the "HarmonyOS distributed camera development" battle practice!)
